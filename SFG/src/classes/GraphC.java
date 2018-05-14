@@ -120,8 +120,6 @@ public class GraphC implements GraphI {
             graph.removeVertex(list.get(0));
             list.remove(0);
         }
-        System.out.println(graph.vertexSet().isEmpty());
-        System.out.println(graph.edgeSet().isEmpty());
         return graph.vertexSet().isEmpty();
     }
 

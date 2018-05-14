@@ -66,6 +66,10 @@ public class SFGGUI extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 untoggleEdgeBtn();
+//                graph.clearSelection();
+//                graph.selectAll();
+//                Object[] cells = graph.getSelectionCells();
+//                Point pts = ((mxCell)cells[0]).getGeometry().getPoint();
                 graph.removeCells(graph.getChildVertices(graph.getDefaultParent()));
                 graphT.deleteAllVertices();
             }

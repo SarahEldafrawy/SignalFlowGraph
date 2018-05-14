@@ -5,7 +5,6 @@ import java.util.HashSet;
 
 import java.util.List;
 import java.util.Set;
-import java.util.Stack;
 
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.GraphPath;
@@ -14,6 +13,7 @@ import org.jgrapht.graph.DefaultWeightedEdge;
 import org.jgrapht.graph.DirectedSubgraph;
 
 public class MasonsF {
+
     ////////////////////////
     private List<GraphPath<String, DefaultWeightedEdge>> forwardP;
     private List<Double> gainFP;
@@ -22,7 +22,7 @@ public class MasonsF {
     private double delta;
     private List<List<String>> individualLoops;
     private List<Double> loopsGain;
-////////////////////////////////
+    ////////////////////////////////
 
     private GraphC g = GraphC.getInstance();
 
@@ -254,7 +254,6 @@ public class MasonsF {
     public List<Double> getGainFP() {
         return gainFP;
     }
-
 
     public List<GraphPath<String, DefaultWeightedEdge>> getForwardP() {
         return forwardP;
