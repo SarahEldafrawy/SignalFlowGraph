@@ -1,23 +1,24 @@
 package classes;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 import org.jgrapht.*;
+import org.jgrapht.graph.DefaultDirectedWeightedGraph;
 import org.jgrapht.graph.DefaultWeightedEdge;
 import org.jgrapht.graph.SimpleDirectedWeightedGraph;
 import org.jgrapht.alg.cycle.*;
 import org.jgrapht.alg.shortestpath.*;
 
 public class GraphC implements GraphI {
-    private SimpleDirectedWeightedGraph<String, DefaultWeightedEdge> graph;
+    private DefaultDirectedWeightedGraph<String, DefaultWeightedEdge> graph;
 
     private String inputNode, outputNode;
     private static GraphC instance = null;
 
     private GraphC() {
-        graph = new SimpleDirectedWeightedGraph<String, DefaultWeightedEdge>(DefaultWeightedEdge.class);
-
+        graph = new DefaultDirectedWeightedGraph<String, DefaultWeightedEdge>(DefaultWeightedEdge.class);
         inputNode = "";
         outputNode = "";
     }
@@ -33,6 +34,12 @@ public class GraphC implements GraphI {
     public boolean addEdge(String source, String destination, DefaultWeightedEdge e) {
 
         return graph.addEdge(source, destination, e);
+    }
+
+    @Override
+    public DefaultWeightedEdge getEdge(String source, String destination) {
+
+        return graph.getEdge(source,destination);
     }
 
     @Override
@@ -109,7 +116,14 @@ public class GraphC implements GraphI {
     }
     @Override
     public boolean deleteAllVertices() {
-        return graph.removeAllVertices(graph.vertexSet());
+        List<String> list = new ArrayList<>(graph.vertexSet());
+        while (!list.isEmpty()) {
+            graph.removeVertex(list.get(0));
+            list.remove(0);
+        }
+        System.out.println(graph.vertexSet().isEmpty());
+        System.out.println(graph.edgeSet().isEmpty());
+        return graph.vertexSet().isEmpty();
     }
 
     @Override

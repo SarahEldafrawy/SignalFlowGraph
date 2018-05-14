@@ -38,6 +38,8 @@ public interface GraphI {
 
     boolean deleteAllVertices();
 
+    DefaultWeightedEdge getEdge(String source, String destination);
+
     Set<DefaultWeightedEdge> getEdges();
 
     Set<DefaultWeightedEdge> getEdges(String v);
