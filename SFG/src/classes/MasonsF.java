@@ -18,7 +18,7 @@ public class MasonsF {
     private List<GraphPath<String, DefaultWeightedEdge>> forwardP;
     private List<Double> gainFP;
     private List<Double> deltaFP;
-    private List<List<List<Integer>>> nonTouching = new ArrayList<>();
+    private List<List<List<Integer>>> nonTouchingF = new ArrayList<>();
     private double delta;
     private List<List<String>> individualLoops;
     private List<Double> loopsGain;
@@ -38,9 +38,10 @@ public class MasonsF {
             throw new RuntimeException("Same vertix");
         }
         individualLoops = g.findSimpleCycles();
-        nonTouching = new ArrayList<>();
+        nonTouchingF = new ArrayList<>();
         loopsGain = new ArrayList<>();
-        delta = computeDelta(individualLoops);
+        nonTouchingF = getAllNon(individualLoops);
+        delta = computeDelta(nonTouchingF, this.individualLoops);
         forwardP = g.getAllPaths(source, destination);
         int numOfFP = forwardP.size();
         gainFP = computeGain(numOfFP);
@@ -50,6 +51,23 @@ public class MasonsF {
             numerator += (gainFP.get(i) * deltaFP.get(i));
         }
         return numerator / delta;
+    }
+
+
+
+    private Set<String> getAllVertices(Set<DefaultWeightedEdge> edges) {
+        List<String> v = new ArrayList<>();
+        for(DefaultWeightedEdge e : edges) {
+            String v1  = g.getGraph().getEdgeSource(e);
+            String v2  = g.getGraph().getEdgeTarget(e);
+            if(!v.contains(v1)) {
+                v.add(v1);
+            }
+            if(!v.contains(v2)) {
+                v.add(v2);
+            }
+        }
+        return  new HashSet<>(v);
     }
 
     /**
@@ -70,7 +88,9 @@ public class MasonsF {
             SzwarcfiterLauerSimpleCycles<String, DefaultWeightedEdge> cycleFind = new SzwarcfiterLauerSimpleCycles<>();
             cycleFind.setGraph(subG);
             List<List<String>> cycles = cycleFind.findSimpleCycles();
-            delta.add(computeDelta(cycles));
+            List<List<List<Integer>>> non = new ArrayList<>();
+            non = getAllNon(cycles);
+            delta.add(computeDelta(non, cycles));
         }
         return delta;
     }
@@ -107,63 +127,27 @@ public class MasonsF {
     /**
      * find delta for all graphs
      *
-     * @param cycles
      * @return
      */
-    public double computeDelta(List<List<String>> cycles) {
-        boolean[][] checkTouch = this.untouchedLoops(cycles);
-        int f = 2;
-        double sum = 0;
-        double total = 1 - computeTotalCyclesGain(cycles);
+    public double computeDelta(List<List<List<Integer>>> nonTouching, List<List<String>> individualLoops) {
+        double f = 2;
+        double total = 1 - computeTotalCyclesGain(individualLoops);
         List<Integer> loops = new ArrayList<>();
-
-        for (int n = 2; n < checkTouch.length; n++) {
-            int count = 1;
-            for (int i = 0; i < checkTouch.length - 1; i++) {
-                count = 1;
-                for (int k = i + 1; k < checkTouch[i].length; k++) {
-                    if (!checkTouch[i][k]) {
-                        count++;
-                        if (!loops.contains(i))
-                            loops.add(i);
-                        loops.add(k);
-
-                    }
-                    if (count == n) {
-                        if (n == 2) {
-                            int c = nonTouching.size();
-                            while (n - 2 >= c) {
-                                nonTouching.add(c, new ArrayList<List<Integer>>());
-                                c++;
-                            }
-                            nonTouching.get(n - 2).add(new ArrayList<>(loops));
-                            double tmpSum = computeWeightOfLoop(loops, cycles);
-                            sum += tmpSum;
-
-                        } else {
-                            if (checkIfAllNonTouching(checkTouch, loops)) {
-                                int c = nonTouching.size();
-                                while (n - 2 >= c) {
-                                    nonTouching.add(c, new ArrayList<List<Integer>>());
-                                    c++;
-                                }
-                                nonTouching.get(n - 2).add(new ArrayList<>(loops));
-                                double tmpSum = computeWeightOfLoop(loops, cycles);
-                                sum += tmpSum;
-                            }
-                        }
-                        count = 1;
-                        loops.clear();
-
-                    }
+        for(List<List<Integer>> l1 : nonTouching) {
+            double sum = 0;
+            for(List<Integer> l2 : l1) {
+                double loopsG = 1;
+                for(Integer i : l2) {
+                    loopsG *= gainOfLoop(individualLoops.get(i));
                 }
+                sum += loopsG;
             }
             total += (sum * Math.pow(-1, f));
-            sum = 0;
             f++;
         }
         return total;
     }
+
 
     private boolean checkIfAllNonTouching(boolean[][] checkTouch, List<Integer> loops) {
         for (int i = 1; i < loops.size() - 1; i++) {
@@ -263,7 +247,7 @@ public class MasonsF {
     }
 
     public List<List<List<Integer>>> getNonTouching() {
-        return nonTouching;
+        return nonTouchingF;
     }
 
     public double getDelta() {
@@ -276,5 +260,65 @@ public class MasonsF {
 
     public List<Double> getLoopsGain() {
         return loopsGain;
+    }
+
+    private List<List<List<Integer>>> delta(boolean[][] check, List<List<Integer>> loops, List<List<List<Integer>>> nonTouching){
+        if(nonTouching.size() == check.length) {
+            return nonTouching;
+        }
+        List<Integer> ins = new ArrayList<>();
+        nonTouching.add(new ArrayList<List<Integer>>());
+        for(List<Integer> l : loops) {
+            List<Integer> temp = new ArrayList<>(l);
+            Integer startIn = l.get(l.size()-1);
+            for(int i = startIn+1; i< check.length; i++) {
+                temp.add(i);
+                if(checkIfAllNonTouching(check, temp)) {
+                    nonTouching.get(nonTouching.size()-1).add(new ArrayList<>(temp));
+                    temp.remove(temp.size()-1);
+                }
+            }
+        }
+        if(nonTouching.get(nonTouching.size()-1).isEmpty()) {
+            nonTouching.remove(nonTouching.size()-1);
+            return nonTouching;
+        }
+        delta(check, nonTouching.get(nonTouching.size()-1), nonTouching);
+
+        return nonTouching;
+    }
+    private List<List<List<Integer>>> getAllNon(List<List<String>> cycles) {
+        List<List<List<Integer>>> nonTouching = new ArrayList<>();
+        boolean[][] checkTouch = this.untouchedLoops(cycles);
+        int f = 2;
+        double sum = 0;
+        double total = 1 - computeTotalCyclesGain(cycles);
+        List<Integer> loops = new ArrayList<>();
+        nonTouching.add(new ArrayList<List<Integer>>());
+
+        for (int i = 0; i < checkTouch.length - 1; i++) {
+            int count = 1;
+            loops.clear();
+            for (int k = i + 1; k < checkTouch[i].length; k++) {
+                if (!checkTouch[i][k]) {
+                    count++;
+                    if (!loops.contains(i))
+                        loops.add(i);
+                    loops.add(k);
+
+                }
+                if (count == 2) {
+                    nonTouching.get(0).add(new ArrayList<>(loops));
+                    count = 1;
+                    loops.clear();
+                }
+            }
+        }
+        if(nonTouching.get(0).isEmpty()) {
+            nonTouching.remove(0);
+            return nonTouching;
+        }
+        nonTouching = delta(checkTouch, nonTouching.get(0), nonTouching);
+        return  nonTouching;
     }
 }

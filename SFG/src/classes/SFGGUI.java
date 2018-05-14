@@ -19,8 +19,6 @@ public class SFGGUI extends JFrame {
 
     final String ADDEDGE = "add edge";
     final String DELETE = "delete";
-    final String SINK = "sink";
-    final String SOURCE = "source";
     private String btnClicked;
     private int countCicks = 0;
     private int vertix = 1;
@@ -28,7 +26,6 @@ public class SFGGUI extends JFrame {
     Object parent;
     Object v1;
     Object v2;
-    private mxCell lastSelectedEgde;
     private mxGraphComponent graphComponent;
     private GraphC graphT = GraphC.getInstance();
 
@@ -41,10 +38,6 @@ public class SFGGUI extends JFrame {
     private JPanel bigPlane;
     private JButton removeBtn;
     private JTextField weightEdit;
-    private JButton setSinkBtn;
-    private JButton setSourceBtn;
-    private JTextField sourceText;
-    private JTextField sinkText;
     private mxCell lastSelectedEdge;
 
     public SFGGUI() {
@@ -70,8 +63,10 @@ public class SFGGUI extends JFrame {
 //                graph.selectAll();
 //                Object[] cells = graph.getSelectionCells();
 //                Point pts = ((mxCell)cells[0]).getGeometry().getPoint();
+                vertix = 0;
                 graph.removeCells(graph.getChildVertices(graph.getDefaultParent()));
                 graphT.deleteAllVertices();
+                addRandC();
             }
         });
         addEdgeBtn.addActionListener(new ActionListener() {
@@ -89,14 +84,8 @@ public class SFGGUI extends JFrame {
 
                 MasonsF mason = new MasonsF();
 
-                Double TransFun = 0.0;
+                Double TransFun = TransFun = mason.solveG(graphT.getInputNode(), graphT.getOutputNode());
 
-                try {
-                    TransFun = mason.solveG(graphT.getInputNode(), graphT.getOutputNode());
-                } catch (Exception err) {
-                    JOptionPane.showMessageDialog(null, "Please make sure you have selected two different nodes as source and sink!");
-                    return;
-                }
 
                 stringToDisplay.append("Forward Paths:" + "\n");
                 List<GraphPath<String, DefaultWeightedEdge>> forwardPaths = mason.getForwardP();
@@ -129,6 +118,7 @@ public class SFGGUI extends JFrame {
                             for (int i = 0; i < loopsList.get(k).get(j).size(); i++) {
                                 if (i == 0) {
                                     stringToDisplay.append("L" + loopsList.get(k).get(j).get(i));
+                                    continue;
                                 }
                                 stringToDisplay.append(", L" + loopsList.get(k).get(j).get(i));
                             }
@@ -141,6 +131,7 @@ public class SFGGUI extends JFrame {
                 for (int i = 0; i < deltaFP.size(); i++) {
                     if (i == 0) {
                         stringToDisplay.append("D" + i + ": " + deltaFP.get(i));
+                        continue;
                     }
                     stringToDisplay.append(",  D" + i + ": " + deltaFP.get(i));
                 }
@@ -154,8 +145,16 @@ public class SFGGUI extends JFrame {
                  * Delta
                  * Overall T.F.
                  */
+                JTextArea textArea = new JTextArea(stringToDisplay.toString());
+                JScrollPane scrollPane = new JScrollPane(textArea);
+                textArea.setLineWrap(true);
+                Font font = new Font("Segoe Script", Font.BOLD, 12);
+                textArea.setFont(font);
+                textArea.setMargin(new Insets(15,15,15,15));
+                textArea.setWrapStyleWord(true);
+                scrollPane.setPreferredSize( new Dimension( 500, 500 ) );
                 JOptionPane.showMessageDialog(frame,
-                        stringToDisplay.toString(),
+                        scrollPane,
                         "The Overall Transfer Function",
                         JOptionPane.PLAIN_MESSAGE);
             }
@@ -167,20 +166,17 @@ public class SFGGUI extends JFrame {
                 btnClicked = DELETE;
             }
         });
-        setSourceBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                untoggleEdgeBtn();
-                btnClicked = SOURCE;
-            }
-        });
-        setSinkBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                untoggleEdgeBtn();
-                btnClicked = SINK;
-            }
-        });
+    }
+
+    private void addRandC() {
+        graph.insertVertex(parent, null, "R", 100, 100, 50, 50);
+        graph.insertVertex(parent, null, "C", 600, 100, 50, 50);
+
+        graphT = GraphC.getInstance();
+        graphT.addVertices("R");
+        graphT.addVertices("C");
+        graphT.setInputNode("R");
+        graphT.setOutputNode("C");
     }
 
     private String displayStr(String start, List<String> list) {
@@ -197,7 +193,6 @@ public class SFGGUI extends JFrame {
     }
 
     public static void main(String[] args) {
-
         frame = new JFrame("SFG");
         frame.setContentPane(new SFGGUI().bigPlane);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -218,6 +213,8 @@ public class SFGGUI extends JFrame {
             graph = new mxGraph();
             parent = graph.getDefaultParent();
             graph.setAllowDanglingEdges(false);
+
+            addRandC();
 
             graphComponent = new mxGraphComponent(graph);
             graphComponent.getGraphControl().addMouseListener(new MouseAdapter() {
@@ -255,12 +252,19 @@ public class SFGGUI extends JFrame {
 
     private void updateSelectedVertices(mxCell cell) {
 
+        if (btnClicked == null) {
+            return;
+        }
         if (btnClicked.equals(ADDEDGE) && cell.isVertex()) {
             countCicks++;
+            if (countCicks == 2 && cell.getValue().equals("R")) {
+                countCicks = 0;
+                return;
+            }
             if (countCicks == 2) {
+                v2 = cell;
                 graph.getModel().beginUpdate();
                 try {
-                    v2 = cell;
                     graph.insertEdge(parent, null, weightEdit.getText(), v1, v2); // check edge weight
                     graphT.addEdge((String) ((mxCell) v1).getValue(), (String) ((mxCell) v2).getValue()); // check if working
                     graphT.setEdgeWeight(graphT.getGraph().getEdge((String) (((mxCell) v1).getValue()), (String) ((mxCell) v2).getValue()), Double.parseDouble(weightEdit.getText()));
@@ -274,10 +278,16 @@ public class SFGGUI extends JFrame {
             }
 
         } else if (btnClicked.equals(DELETE)) {
+            if (cell.getValue().equals("R") || cell.getValue().equals("C")) {
+                return;
+            }
             graph.getModel().beginUpdate();
             try {
                 graph.getModel().remove(cell);
                 if (cell.isEdge()) {
+                    if (lastSelectedEdge == cell) {
+                        lastSelectedEdge = null;
+                    }
                     graphT.deleteEdge(graphT.getGraph().getEdge((String) cell.getSource().getValue(), (String) cell.getTarget().getValue()));
                 } else if (cell.isVertex()) {
                     graphT.deleteVertex((String) cell.getValue());
@@ -287,17 +297,6 @@ public class SFGGUI extends JFrame {
             } finally {
                 graph.getModel().endUpdate();
             }
-        } else if (btnClicked.equals(SOURCE) && cell.isVertex()) {
-            graphT.setInputNode((String) cell.getValue());
-            sourceText.setText((String) cell.getValue());
-
-        } else if (btnClicked.equals(SINK) && cell.isVertex()) {
-            graphT.setOutputNode((String) cell.getValue());
-            sinkText.setText((String) cell.getValue());
-//            Map<String, Object> vstyle =
-//                    new HashMap<String, Object>();
-//            vstyle.put(mxConstants.STYLE_SWIMLANE_FILLCOLOR, "green");
-//            graph.getView().getState(cell).setStyle(vstyle);
         }
     }
 
