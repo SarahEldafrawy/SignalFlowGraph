@@ -7,7 +7,6 @@ import java.util.Set;
 import org.jgrapht.*;
 import org.jgrapht.graph.DefaultDirectedWeightedGraph;
 import org.jgrapht.graph.DefaultWeightedEdge;
-import org.jgrapht.graph.SimpleDirectedWeightedGraph;
 import org.jgrapht.alg.cycle.*;
 import org.jgrapht.alg.shortestpath.*;
 

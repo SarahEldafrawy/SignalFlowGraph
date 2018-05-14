@@ -14,15 +14,17 @@ import org.jgrapht.graph.DefaultWeightedEdge;
 import org.jgrapht.graph.DirectedSubgraph;
 
 public class MasonsF {
-    public List<GraphPath<String, DefaultWeightedEdge>> forwardP;
-    public List<Double> gainFP;
-    public List<Double> deltaFP;
-    public List<List<List<Integer>>> nonTouching = new ArrayList<>();
-    public double delta;
-    public List<List<String>> individualLoops;
+    ////////////////////////
+    private List<GraphPath<String, DefaultWeightedEdge>> forwardP;
+    private List<Double> gainFP;
+    private List<Double> deltaFP;
+    private List<List<List<Integer>>> nonTouching = new ArrayList<>();
+    private double delta;
+    private List<List<String>> individualLoops;
+    private List<Double> loopsGain;
+////////////////////////////////
 
     private GraphC g = GraphC.getInstance();
-    public List<Double> loopsGain;
 
     /**
      * Solve mason's formula
@@ -32,7 +34,7 @@ public class MasonsF {
      * @return
      */
     public double solveG(String source, String destination) {
-        if (source.equals(destination)) {
+        if (source.equals(destination)) { //TODO added
             throw new RuntimeException("Same vertix");
         }
         individualLoops = g.findSimpleCycles();
@@ -248,4 +250,32 @@ public class MasonsF {
         return checkTouch;
     }
 
+    //////////////////////////////////////////////////
+    public List<Double> getGainFP() {
+        return gainFP;
+    }
+
+
+    public List<GraphPath<String, DefaultWeightedEdge>> getForwardP() {
+        return forwardP;
+    }
+    public List<Double> getDeltaFP() {
+        return deltaFP;
+    }
+
+    public List<List<List<Integer>>> getNonTouching() {
+        return nonTouching;
+    }
+
+    public double getDelta() {
+        return delta;
+    }
+
+    public List<List<String>> getIndividualLoops() {
+        return individualLoops;
+    }
+
+    public List<Double> getLoopsGain() {
+        return loopsGain;
+    }
 }

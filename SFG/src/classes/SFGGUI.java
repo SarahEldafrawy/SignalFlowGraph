@@ -95,8 +95,8 @@ public class SFGGUI extends JFrame {
                 }
 
                 stringToDisplay.append("Forward Paths:" + "\n");
-                List<GraphPath<String, DefaultWeightedEdge>> forwardPaths = mason.forwardP;
-                List<Double> gainFP = mason.gainFP;
+                List<GraphPath<String, DefaultWeightedEdge>> forwardPaths = mason.getForwardP();
+                List<Double> gainFP = mason.getGainFP();
                 for (int i = 0; i < forwardPaths.size(); i++) {
                     stringToDisplay.append(displayStr("P" + i + ": ", forwardPaths.get(i).getVertexList()));
                     stringToDisplay.append("    " + "M: " + gainFP.get(i));
@@ -104,8 +104,8 @@ public class SFGGUI extends JFrame {
                 }
 
                 stringToDisplay.append("\n" + "Individual Loops:" + "\n");
-                List<List<String>> individualLoops = mason.individualLoops;
-                List<Double> loopsGain = mason.loopsGain;
+                List<List<String>> individualLoops = mason.getIndividualLoops();
+                List<Double> loopsGain = mason.getLoopsGain();
                 if (individualLoops.size() == 0) {
                     stringToDisplay.append("there isn't any" + "\n");
                 } else {
@@ -115,7 +115,7 @@ public class SFGGUI extends JFrame {
                         stringToDisplay.append("\n");
                     }
                 }
-                List<List<List<Integer>>> loopsList = mason.nonTouching;
+                List<List<List<Integer>>> loopsList = mason.getNonTouching();
                 stringToDisplay.append("\n" + "Non-TouchingLoops:" + "\n");
                 if (loopsList.size() == 0) {
                     stringToDisplay.append("there isn't any" + "\n");
@@ -132,7 +132,7 @@ public class SFGGUI extends JFrame {
                         }
                     }
                 }
-                List<Double> deltaFP = mason.deltaFP;
+                List<Double> deltaFP = mason.getDeltaFP();
                 stringToDisplay.append("\n" + "Deltas:" + "\n");
                 for (int i = 0; i < deltaFP.size(); i++) {
                     if (i == 0) {
@@ -140,7 +140,7 @@ public class SFGGUI extends JFrame {
                     }
                     stringToDisplay.append(",  D" + i + ": " + deltaFP.get(i));
                 }
-                stringToDisplay.append("\n" + "Main Delta:" + "\t" + mason.delta);
+                stringToDisplay.append("\n" + "Main Delta:" + "\t" + mason.getDelta());
                 stringToDisplay.append("\n" + "Overall Transfer Function:" + "\t" + TransFun);
                 /**
                  * get forward paths + gain
