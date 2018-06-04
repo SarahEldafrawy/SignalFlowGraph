@@ -130,8 +130,14 @@ public class MasonsF {
      * @return
      */
     public double computeDelta(List<List<List<Integer>>> nonTouching, List<List<String>> individualLoops) {
-        double f = 2;
+        if(individualLoops.isEmpty()) {
+            return  1;
+        }
         double total = 1 - computeTotalCyclesGain(individualLoops);
+        if(nonTouching.isEmpty()) {
+            return total;
+        }
+        double f = 2;
         List<Integer> loops = new ArrayList<>();
         for(List<List<Integer>> l1 : nonTouching) {
             double sum = 0;
@@ -171,7 +177,9 @@ public class MasonsF {
         int total = 0;
         for (List<String> vL : cycles) {
             Double g = gainOfLoop(vL);
-            loopsGain.add(g);
+            if(loopsGain.size() != individualLoops.size()) {
+                loopsGain.add(g);
+            }
             total += g;
         }
         return total;
